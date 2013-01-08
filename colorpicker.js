@@ -159,34 +159,76 @@
     /**
      * Return click event handler for the slider.
      * Sets picker background color and calls ctx.callback if provided.
-     */  
-    function slideListener(ctx, slideElement, pickerElement) {
+     */
+
+    function slideMouseMove(evt, ctx, slideElement, pickerElement) {
+        evt = evt || window.event;
+        evt.preventDefault();
+        var mouse = mousePosition(evt);
+        ctx.h = mouse.y / slideElement.offsetHeight * 360 + hueOffset;
+        ctx.s = ctx.v = 1;
+        var c = hsv2rgb(ctx.h, 1, 1);
+        pickerElement.style.backgroundColor = c.hex;
+        ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
+    }
+
+    function slideMoveListener(ctx, slideElement, pickerElement) {
         return function(evt) {
-            evt = evt || window.event;
-            var mouse = mousePosition(evt);
-            ctx.h = mouse.y / slideElement.offsetHeight * 360 + hueOffset;
-            ctx.s = ctx.v = 1;
-            var c = hsv2rgb(ctx.h, 1, 1);
-            pickerElement.style.backgroundColor = c.hex;
-            ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
+            if (ctx.sliding) {
+                slideMouseMove(evt, ctx, slideElement, pickerElement);
+            }
+        }
+    };
+
+    function slideDownListener(ctx, slideElement, pickerElement) {
+        return function(evt) {
+            ctx.sliding = true;
+            slideMouseMove(evt, ctx, slideElement, pickerElement);
+        }
+    };
+
+    function slideUpListener(ctx) {
+        return function(evt) {
+            ctx.sliding = false;
         }
     };
 
     /**
      * Return click event handler for the picker.
      * Calls ctx.callback if provided.
-     */  
-    function pickerListener(ctx, pickerElement) {
-        return function(evt) {
-            evt = evt || window.event;
-            var mouse = mousePosition(evt),
-                width = pickerElement.offsetWidth,            
-                height = pickerElement.offsetHeight;
+     */
 
-            ctx.s = mouse.x / width;
-            ctx.v = (height - mouse.y) / height;
-            var c = hsv2rgb(ctx.h, ctx.s, ctx.v);
-            ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, mouse);
+    function pickerMouseMove(evt, ctx, pickerElement) {
+        evt = evt || window.event;
+        evt.preventDefault();
+        var mouse = mousePosition(evt),
+            width = pickerElement.offsetWidth,
+            height = pickerElement.offsetHeight;
+
+        ctx.s = mouse.x / width;
+        ctx.v = (height - mouse.y) / height;
+        var c = hsv2rgb(ctx.h, ctx.s, ctx.v);
+        ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, mouse);
+    }
+
+    function pickerMoveListener(ctx, pickerElement) {
+        return function(evt) {
+            if (ctx.picking) {
+                pickerMouseMove(evt, ctx, pickerElement);
+            }
+        }
+    };
+
+    function pickerDownListener(ctx, pickerElement) {
+        return function(evt) {
+            ctx.picking = true;
+            pickerMouseMove(evt, ctx, pickerElement);
+        }
+    };
+
+    function pickerUpListener(ctx) {
+        return function(evt) {
+            ctx.picking = false;
         }
     };
 
@@ -200,6 +242,8 @@
         if (!(this instanceof ColorPicker)) return new ColorPicker(slideElement, pickerElement, callback);
         
         this.callback = callback;
+        this.sliding = false;
+        this.picking = false;
         this.h = 0;
         this.s = 1;
         this.v = 1;
@@ -211,15 +255,21 @@
             pickerElement.appendChild(picker.cloneNode(true));
         } else {
             slideElement.innerHTML = slide;
-            pickerElement.innerHTML = picker;            
+            pickerElement.innerHTML = picker;
         }
 
         if (slideElement.attachEvent) {
             slideElement.attachEvent('onclick', slideListener(this, slideElement, pickerElement));
             pickerElement.attachEvent('onclick', pickerListener(this, pickerElement));
         } else if (slideElement.addEventListener) {
-            slideElement.addEventListener('click', slideListener(this, slideElement, pickerElement), false);
-            pickerElement.addEventListener('click', pickerListener(this, pickerElement), false);
+            slideElement.addEventListener('mousedown', slideDownListener(this, slideElement, pickerElement), false);
+            slideElement.addEventListener('mousemove', slideMoveListener(this, slideElement, pickerElement), false);
+            slideElement.addEventListener('mouseup', slideUpListener(this), false);
+            slideElement.addEventListener('mouseout', slideUpListener(this), false);
+            pickerElement.addEventListener('mousedown', pickerDownListener(this, pickerElement), false);
+            pickerElement.addEventListener('mousemove', pickerMoveListener(this, pickerElement), false);
+            pickerElement.addEventListener('mouseup', pickerUpListener(this), false);
+            pickerElement.addEventListener('mouseout', pickerUpListener(this), false);
         }
     };
 
@@ -283,6 +333,8 @@
      * @param {object} mousePicker Coordinates of the mouse cursor in the picker area.
      */
     ColorPicker.positionIndicators = function(slideIndicator, pickerIndicator, mouseSlide, mousePicker) {
+        slideIndicator.style.pointerEvents = "none";
+        pickerIndicator.style.pointerEvents = "none";
         if (mouseSlide) {
             pickerIndicator.style.left = 'auto';
             pickerIndicator.style.right = '0px';
