@@ -162,8 +162,11 @@
      */
 
     function slideMouseMove(evt, ctx, slideElement, pickerElement) {
-        evt = evt || window.event;
-        evt.preventDefault();
+        if (window.event) {
+            evt = window.event;
+        } else {
+            evt.preventDefault();
+        }
         var mouse = mousePosition(evt);
         ctx.h = mouse.y / slideElement.offsetHeight * 360 + hueOffset;
         ctx.s = ctx.v = 1;
@@ -199,8 +202,11 @@
      */
 
     function pickerMouseMove(evt, ctx, pickerElement) {
-        evt = evt || window.event;
-        evt.preventDefault();
+        if (window.event) {
+            evt = window.event;
+        } else {
+            evt.preventDefault();
+        }
         var mouse = mousePosition(evt),
             width = pickerElement.offsetWidth,
             height = pickerElement.offsetHeight;
@@ -259,8 +265,14 @@
         }
 
         if (slideElement.attachEvent) {
-            slideElement.attachEvent('onclick', slideListener(this, slideElement, pickerElement));
-            pickerElement.attachEvent('onclick', pickerListener(this, pickerElement));
+            slideElement.attachEvent('onmousedown', slideDownListener(this, slideElement, pickerElement));
+            slideElement.attachEvent('onmousemove', slideMoveListener(this, slideElement, pickerElement));
+            slideElement.attachEvent('onmouseout', slideUpListener(this, slideElement, pickerElement));
+            slideElement.attachEvent('onmouseup', slideUpListener(this, slideElement, pickerElement));
+            pickerElement.attachEvent('onmousedown', pickerDownListener(this, pickerElement));
+            pickerElement.attachEvent('onmousemove', pickerMoveListener(this, pickerElement));
+            pickerElement.attachEvent('onmouseout', pickerUpListener(this, pickerElement));
+            pickerElement.attachEvent('onmouseup', pickerUpListener(this, pickerElement));
         } else if (slideElement.addEventListener) {
             slideElement.addEventListener('mousedown', slideDownListener(this, slideElement, pickerElement), false);
             slideElement.addEventListener('mousemove', slideMoveListener(this, slideElement, pickerElement), false);
