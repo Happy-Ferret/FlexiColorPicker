@@ -157,88 +157,6 @@
     }
 
     /**
-     * Return click event handler for the slider.
-     * Sets picker background color and calls ctx.callback if provided.
-     */
-
-    function slideMouseMove(evt, ctx) {
-        if (window.event) {
-            evt = window.event;
-        } else {
-            evt.preventDefault();
-        }
-        var mouse = mousePosition(evt);
-        ctx.h = mouse.y / ctx.slideElement.offsetHeight * 360 + hueOffset;
-        ctx.s = ctx.v = 1;
-        var c = hsv2rgb(ctx.h, 1, 1);
-        ctx.pickerElement.style.backgroundColor = c.hex;
-        ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
-    }
-
-    function slideMoveListener(ctx) {
-        return function(evt) {
-            if (ctx.sliding) {
-                slideMouseMove(evt, ctx);
-            }
-        }
-    };
-
-    function slideDownListener(ctx) {
-        return function(evt) {
-            ctx.sliding = true;
-            slideMouseMove(evt, ctx);
-        }
-    };
-
-    function slideUpListener(ctx) {
-        return function(evt) {
-            ctx.sliding = false;
-        }
-    };
-
-    /**
-     * Return click event handler for the picker.
-     * Calls ctx.callback if provided.
-     */
-
-    function pickerMouseMove(evt, ctx) {
-        if (window.event) {
-            evt = window.event;
-        } else {
-            evt.preventDefault();
-        }
-        var mouse = mousePosition(evt),
-            width = ctx.pickerElement.offsetWidth,
-            height = ctx.pickerElement.offsetHeight;
-
-        ctx.s = mouse.x / width;
-        ctx.v = (height - mouse.y) / height;
-        var c = hsv2rgb(ctx.h, ctx.s, ctx.v);
-        ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, mouse);
-    }
-
-    function pickerMoveListener(ctx) {
-        return function(evt) {
-            if (ctx.picking) {
-                pickerMouseMove(evt, ctx);
-            }
-        }
-    };
-
-    function pickerDownListener(ctx) {
-        return function(evt) {
-            ctx.picking = true;
-            pickerMouseMove(evt, ctx);
-        }
-    };
-
-    function pickerUpListener(ctx) {
-        return function(evt) {
-            ctx.picking = false;
-        }
-    };
-
-    /**
      * ColorPicker.
      * @param {DOMElement} slideElement HSV slide element.
      * @param {DOMElement} pickerElement HSV picker element.
@@ -246,6 +164,75 @@
      */
     function ColorPicker(slideElement, pickerElement, callback) {
         if (!(this instanceof ColorPicker)) return new ColorPicker(slideElement, pickerElement, callback);
+        var self = this;
+
+        /**
+         * Mouse move event handler for the slider.
+         * Sets picker background color and calls ctx.callback if provided.
+        */
+        this.slideMouseMove = function(evt) {
+            if (window.event) {
+                evt = window.event;
+            } else {
+                evt.preventDefault();
+            }
+            var mouse = mousePosition(evt);
+            this.h = mouse.y / this.slideElement.offsetHeight * 360 + hueOffset;
+            this.s = this.v = 1;
+            var c = hsv2rgb(this.h, 1, 1);
+            this.pickerElement.style.backgroundColor = c.hex;
+            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
+        }
+
+        this.slideMoveListener = function(evt) {
+            if (self.sliding) {
+                self.slideMouseMove(evt);
+            }
+        };
+
+        this.slideDownListener = function(evt) {
+            self.sliding = true;
+            self.slideMouseMove(evt);
+        };
+
+        this.slideUpListener = function(evt) {
+            self.sliding = false;
+        };
+
+        /**
+         * Mouse move event handler for the picker.
+         * Calls this.callback if provided.
+         */
+        this.pickerMouseMove = function(evt) {
+            if (window.event) {
+                evt = window.event;
+            } else {
+                evt.preventDefault();
+            }
+            var mouse = mousePosition(evt),
+                width = this.pickerElement.offsetWidth,
+                height = this.pickerElement.offsetHeight;
+
+            this.s = mouse.x / width;
+            this.v = (height - mouse.y) / height;
+            var c = hsv2rgb(this.h, this.s, this.v);
+            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b }, mouse);
+        }
+
+        this.pickerMoveListener = function(evt) {
+            if (self.picking) {
+                self.pickerMouseMove(evt);
+            }
+        };
+
+        this.pickerDownListener = function(evt) {
+            self.picking = true;
+            self.pickerMouseMove(evt);
+        };
+
+        this.pickerUpListener = function(evt) {
+            self.picking = false;
+        };
         
         this.callback = callback;
         this.sliding = false;
@@ -265,23 +252,23 @@
         }
 
         if (slideElement.attachEvent) {
-            slideElement.attachEvent('onmousedown', slideDownListener(this));
-            slideElement.attachEvent('onmousemove', slideMoveListener(this));
-            slideElement.attachEvent('onmouseout', slideUpListener(this));
-            slideElement.attachEvent('onmouseup', slideUpListener(this));
-            pickerElement.attachEvent('onmousedown', pickerDownListener(this));
-            pickerElement.attachEvent('onmousemove', pickerMoveListener(this));
-            pickerElement.attachEvent('onmouseout', pickerUpListener(this));
-            pickerElement.attachEvent('onmouseup', pickerUpListener(this));
+            slideElement.attachEvent('onmousedown', this.slideDownListener);
+            slideElement.attachEvent('onmousemove', this.slideMoveListener);
+            slideElement.attachEvent('onmouseout', this.slideUpListener);
+            slideElement.attachEvent('onmouseup', this.slideUpListener);
+            pickerElement.attachEvent('onmousedown', this.pickerDownListener);
+            pickerElement.attachEvent('onmousemove', this.pickerMoveListener);
+            pickerElement.attachEvent('onmouseout', this.pickerUpListener);
+            pickerElement.attachEvent('onmouseup', this.pickerUpListener);
         } else if (slideElement.addEventListener) {
-            slideElement.addEventListener('mousedown', slideDownListener(this), false);
-            slideElement.addEventListener('mousemove', slideMoveListener(this), false);
-            slideElement.addEventListener('mouseup', slideUpListener(this), false);
-            slideElement.addEventListener('mouseout', slideUpListener(this), false);
-            pickerElement.addEventListener('mousedown', pickerDownListener(this), false);
-            pickerElement.addEventListener('mousemove', pickerMoveListener(this), false);
-            pickerElement.addEventListener('mouseup', pickerUpListener(this), false);
-            pickerElement.addEventListener('mouseout', pickerUpListener(this), false);
+            slideElement.addEventListener('mousedown', this.slideDownListener, false);
+            slideElement.addEventListener('mousemove', this.slideMoveListener, false);
+            slideElement.addEventListener('mouseup', this.slideUpListener, false);
+            slideElement.addEventListener('mouseout', this.slideUpListener, false);
+            pickerElement.addEventListener('mousedown', this.pickerDownListener, false);
+            pickerElement.addEventListener('mousemove', this.pickerMoveListener, false);
+            pickerElement.addEventListener('mouseup', this.pickerUpListener, false);
+            pickerElement.addEventListener('mouseout', this.pickerUpListener, false);
         }
     };
 
