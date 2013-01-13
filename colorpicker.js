@@ -172,6 +172,7 @@
         this.pickerElement.style.width = "80%";
         this.pickerElement.style.height = "100%";
         this.pickerElement.style.cssFloat = "left";
+        this.pickerElement.style.styleFloat = "left";
         this.pickerElement.style.backgroundColor = "red";
         this.pickerElement.style.cursor = "crosshair";
         container.appendChild(this.pickerElement);
@@ -180,6 +181,7 @@
         this.slideElement.style.marginLeft = "2%";
         this.slideElement.style.height = "100%";
         this.slideElement.style.cssFloat = "left";
+        this.slideElement.style.styleFloat = "left";
         this.slideElement.style.cursor = "crosshair";
         container.appendChild(this.slideElement);
 
