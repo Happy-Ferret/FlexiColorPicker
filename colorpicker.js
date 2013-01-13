@@ -20,8 +20,7 @@
             return { x: evt.offsetX, y: evt.offsetY };
         }
         // Firefox:
-        var wrapper = evt.target.parentNode.parentNode;
-        return { x: evt.layerX - wrapper.offsetLeft, y: evt.layerY - wrapper.offsetTop };
+        return { x: evt.layerX, y: evt.layerY };
     }
 
     /**
@@ -158,18 +157,32 @@
 
     /**
      * ColorPicker.
-     * @param {DOMElement} slideElement HSV slide element.
-     * @param {DOMElement} pickerElement HSV picker element.
+     * @param {DOMElement} container container of the slider and the picker.
      * @param {Function} callback Called whenever the color is changed provided chosen color in RGB HEX format as the only argument.
      */
-    function ColorPicker(slideElement, pickerElement, callback) {
-        if (!(this instanceof ColorPicker)) return new ColorPicker(slideElement, pickerElement, callback);
+    function ColorPicker(container, callback) {
+        if (!(this instanceof ColorPicker)) return new ColorPicker(container, callback);
         var self = this;
 
         /**
          * Mouse move event handler for the slider.
          * Sets picker background color and calls ctx.callback if provided.
         */
+        this.pickerElement = document.createElement("div");
+        this.pickerElement.style.width = "80%";
+        this.pickerElement.style.height = "100%";
+        this.pickerElement.style.cssFloat = "left";
+        this.pickerElement.style.backgroundColor = "red";
+        this.pickerElement.style.cursor = "crosshair";
+        container.appendChild(this.pickerElement);
+        this.slideElement = document.createElement("div");
+        this.slideElement.style.width = "18%";
+        this.slideElement.style.marginLeft = "2%";
+        this.slideElement.style.height = "100%";
+        this.slideElement.style.cssFloat = "left";
+        this.slideElement.style.cursor = "crosshair";
+        container.appendChild(this.slideElement);
+
         this.slideMouseMove = function(evt) {
             if (window.event) {
                 evt = window.event;
@@ -181,7 +194,8 @@
             this.s = this.v = 1;
             var c = hsv2rgb(this.h, 1, 1);
             this.pickerElement.style.backgroundColor = c.hex;
-            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
+            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b });
+            this.positionIndicators(mouse);
         }
 
         this.slideMoveListener = function(evt) {
@@ -216,7 +230,8 @@
             this.s = mouse.x / width;
             this.v = (height - mouse.y) / height;
             var c = hsv2rgb(this.h, this.s, this.v);
-            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b }, mouse);
+            this.callback && this.callback(c.hex, { h: this.h - hueOffset, s: this.s, v: this.v }, { r: c.r, g: c.g, b: c.b });
+            this.positionIndicators(undefined, mouse);
         }
 
         this.pickerMoveListener = function(evt) {
@@ -233,42 +248,86 @@
         this.pickerUpListener = function(evt) {
             self.picking = false;
         };
-        
+
         this.callback = callback;
         this.sliding = false;
         this.picking = false;
         this.h = 0;
         this.s = 1;
         this.v = 1;
-        this.pickerElement = pickerElement;
-        this.slideElement = slideElement;
-
-        if (type == 'SVG') {
-            slideElement.appendChild(slide.cloneNode(true));
-            pickerElement.appendChild(picker.cloneNode(true));
-        } else {
-            slideElement.innerHTML = slide;
-            pickerElement.innerHTML = picker;
+        this.slideElement.style.position = "relative";
+        this.pickerElement.style.position = "relative";
+        function applyIndicatorStyle(element) {
+            element.style.width = "5px";
+            element.style.height = "5px";
+            element.style.border = "1px solid black";
+            element.style.backgroundColor = "white";
+            element.style.position = "absolute";
+            element.style.borderRadius = "4px";
         }
 
-        if (slideElement.attachEvent) {
-            slideElement.attachEvent('onmousedown', this.slideDownListener);
-            slideElement.attachEvent('onmousemove', this.slideMoveListener);
-            slideElement.attachEvent('onmouseout', this.slideUpListener);
-            slideElement.attachEvent('onmouseup', this.slideUpListener);
-            pickerElement.attachEvent('onmousedown', this.pickerDownListener);
-            pickerElement.attachEvent('onmousemove', this.pickerMoveListener);
-            pickerElement.attachEvent('onmouseout', this.pickerUpListener);
-            pickerElement.attachEvent('onmouseup', this.pickerUpListener);
-        } else if (slideElement.addEventListener) {
-            slideElement.addEventListener('mousedown', this.slideDownListener, false);
-            slideElement.addEventListener('mousemove', this.slideMoveListener, false);
-            slideElement.addEventListener('mouseup', this.slideUpListener, false);
-            slideElement.addEventListener('mouseout', this.slideUpListener, false);
-            pickerElement.addEventListener('mousedown', this.pickerDownListener, false);
-            pickerElement.addEventListener('mousemove', this.pickerMoveListener, false);
-            pickerElement.addEventListener('mouseup', this.pickerUpListener, false);
-            pickerElement.addEventListener('mouseout', this.pickerUpListener, false);
+        this.slideIndicatorElement = document.createElement("div");
+        applyIndicatorStyle(this.slideIndicatorElement);
+        this.slideIndicatorElement.style.width = "100%";
+        this.slideIndicatorElement.style.height = "10px";
+        this.slideIndicatorElement.style.left = "-2px";
+        this.slideIndicatorElement.style.opacity = ".3";
+        //-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        this.slideIndicatorElement.style.filter = "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        this.slideIndicatorElement.style.filter = "alpha(opacity=30)";
+        this.slideIndicatorElement.style.border = "2px solid black";
+        this.slideElement.appendChild(this.slideIndicatorElement);
+
+        this.pickerIndicatorElement = document.createElement("div");
+        applyIndicatorStyle(this.pickerIndicatorElement);
+        this.pickerElement.appendChild(this.pickerIndicatorElement);
+
+        if (type == 'SVG') {
+            this.slideElement.appendChild(slide.cloneNode(true));
+            this.pickerElement.appendChild(picker.cloneNode(true));
+        } else {
+            this.slideElement.innerHTML = slide;
+            this.pickerElement.innerHTML = picker;
+        }
+
+    /**
+     * Helper to position indicators.
+     * @param {object} mouseSlide Coordinates of the mouse cursor in the slide area.
+     * @param {object} mousePicker Coordinates of the mouse cursor in the picker area.
+     */
+    this.positionIndicators = function(mouseSlide, mousePicker) {
+        this.slideIndicatorElement.style.pointerEvents = "none";
+        this.pickerIndicatorElement.style.pointerEvents = "none";
+        if (mouseSlide) {
+            this.pickerIndicatorElement.style.left = 'auto';
+            this.pickerIndicatorElement.style.right = '0px';
+            this.pickerIndicatorElement.style.top = '0px';
+            this.slideIndicatorElement.style.top = (mouseSlide.y - this.slideIndicatorElement.offsetHeight/2) + 'px';
+        }
+        if (mousePicker) {
+            this.pickerIndicatorElement.style.top = (mousePicker.y - this.pickerIndicatorElement.offsetHeight/2) + 'px';
+            this.pickerIndicatorElement.style.left = (mousePicker.x - this.pickerIndicatorElement.offsetWidth/2) + 'px';
+        }
+    };
+
+        if (this.slideElement.attachEvent) {
+            this.slideElement.attachEvent('onmousedown', this.slideDownListener);
+            this.slideElement.attachEvent('onmousemove', this.slideMoveListener);
+            this.slideElement.attachEvent('onmouseout', this.slideUpListener);
+            this.slideElement.attachEvent('onmouseup', this.slideUpListener);
+            this.pickerElement.attachEvent('onmousedown', this.pickerDownListener);
+            this.pickerElement.attachEvent('onmousemove', this.pickerMoveListener);
+            this.pickerElement.attachEvent('onmouseout', this.pickerUpListener);
+            this.pickerElement.attachEvent('onmouseup', this.pickerUpListener);
+        } else if (this.slideElement.addEventListener) {
+            this.slideElement.addEventListener('mousedown', this.slideDownListener, false);
+            this.slideElement.addEventListener('mousemove', this.slideMoveListener, false);
+            this.slideElement.addEventListener('mouseup', this.slideUpListener, false);
+            this.slideElement.addEventListener('mouseout', this.slideUpListener, false);
+            this.pickerElement.addEventListener('mousedown', this.pickerDownListener, false);
+            this.pickerElement.addEventListener('mousemove', this.pickerMoveListener, false);
+            this.pickerElement.addEventListener('mouseup', this.pickerUpListener, false);
+            this.pickerElement.addEventListener('mouseout', this.pickerUpListener, false);
         }
     };
 
@@ -294,7 +353,8 @@
                 y: pickerHeight - ctx.v * pickerHeight
             };
         ctx.pickerElement.style.backgroundColor = hsv2rgb(ctx.h, 1, 1).hex;
-        ctx.callback && ctx.callback(hex || c.hex, { h: ctx.h, s: ctx.s, v: ctx.v }, rgb || { r: c.r, g: c.g, b: c.b }, mousePicker, mouseSlide);
+        ctx.callback && ctx.callback(hex || c.hex, { h: ctx.h, s: ctx.s, v: ctx.v }, rgb || { r: c.r, g: c.g, b: c.b });
+        ctx.positionIndicators(mouseSlide, mousePicker);
     };
 
     /**
@@ -324,28 +384,6 @@
     ColorPicker.hsv2rgb = hsv2rgb;
     ColorPicker.rgb2hsv = rgb2hsv;
 
-    /**
-     * Helper to position indicators.
-     * @param {HTMLElement} slideIndicator DOM element representing the indicator of the slide area.
-     * @param {HTMLElement} pickerIndicator DOM element representing the indicator of the picker area.
-     * @param {object} mouseSlide Coordinates of the mouse cursor in the slide area.
-     * @param {object} mousePicker Coordinates of the mouse cursor in the picker area.
-     */
-    ColorPicker.positionIndicators = function(slideIndicator, pickerIndicator, mouseSlide, mousePicker) {
-        slideIndicator.style.pointerEvents = "none";
-        pickerIndicator.style.pointerEvents = "none";
-        if (mouseSlide) {
-            pickerIndicator.style.left = 'auto';
-            pickerIndicator.style.right = '0px';
-            pickerIndicator.style.top = '0px';
-            slideIndicator.style.top = (mouseSlide.y - slideIndicator.offsetHeight/2) + 'px';
-        }
-        if (mousePicker) {
-            pickerIndicator.style.top = (mousePicker.y - pickerIndicator.offsetHeight/2) + 'px';
-            pickerIndicator.style.left = (mousePicker.x - pickerIndicator.offsetWidth/2) + 'px';
-        } 
-    };
-    
     window.ColorPicker = ColorPicker;
 
 })(window, window.document);
