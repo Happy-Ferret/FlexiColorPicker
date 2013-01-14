@@ -188,7 +188,6 @@
          * Mouse move event handler for the slider.
          * Sets picker background color and calls ctx.callback if provided.
         */
-        self = this;
 
         slideMouseMove = function(mouse) {
             self.h = mouse.y / self.slideElement.offsetHeight * 360 + hueOffset;
