@@ -5,10 +5,10 @@
 (function(window, document, undefined) {
 
     function add_on_clicked_mouse_move_listener(element, callback) {
-        down = false;
+        var down = false;
         function mouse_down(evt) {down = true; mouse_move(evt);}
-        function mouse_up(evt) {down = false;}
-        function mouse_move(evt) {if (down) callback(mousePosition(evt))}
+        function mouse_up(evt) {down = false; evt.preventDefault && evt.preventDefault();}
+        function mouse_move(evt) {down && callback(mousePosition(evt))}
         function attach(element, event_name, callback) {
             if (element.attachEvent) {
                 element.attachEvent('on' + event_name, callback);
@@ -17,9 +17,8 @@
             }
         }
         attach(element, 'mousedown', mouse_down);
-        attach(element, 'mouseup', mouse_up);
-        attach(element, 'mouseout', mouse_up);
         attach(element, 'mousemove', mouse_move);
+        attach(document, 'mouseup', mouse_up);
     }
 
     var type = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML"),
