@@ -202,7 +202,6 @@
         this.slideElement.style.styleFloat = "left";
         this.slideElement.style.cursor = "crosshair";
         container.appendChild(this.slideElement);
-        self = this;
 
         slideMouseMove = function(mouse) {
             self.h = mouse.y / self.slideElement.offsetHeight * 360 + hueOffset;
