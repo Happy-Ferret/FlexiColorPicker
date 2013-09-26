@@ -11,12 +11,12 @@
 
     var colorpickerHTMLSnippet = [
         '<div class="picker-wrapper">',
-                '<div class="picker"></div>',
-                '<div class="picker-indicator"></div>',
+            '<div class="picker"></div>',
+            '<div class="picker-indicator"></div>',
         '</div>',
         '<div class="slide-wrapper">',
-                '<div class="slide"></div>',
-                '<div class="slide-indicator"></div>',
+            '<div class="slide"></div>',
+            '<div class="slide-indicator"></div>',
         '</div>'
     ].join('');
 
