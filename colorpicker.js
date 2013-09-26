@@ -50,7 +50,8 @@
     /**
      * Create slide and picker markup
      */
-    slide = $('svg', { xmlns: 'http://www.w3.org/2000/svg', version: '1.1', width: '100%', height: '100%' },
+    var svgAttributes = { xmlns: svgNS, version: '1.1', width: '100%', height: '100%' };
+    slide = $('svg', svgAttributes,
                 [
                     $('defs', {},
                         $('linearGradient', { id: 'gradient-hsv', x1: '0%', y1: '100%', x2: '0%', y2: '0%'},
@@ -71,7 +72,7 @@
                 ]
             );
 
-    picker = $('svg', { xmlns: 'http://www.w3.org/2000/svg', version: '1.1', width: '100%', height: '100%' },
+    picker = $('svg', svgAttributes,
                 [
                     $('defs', {},
                         [
