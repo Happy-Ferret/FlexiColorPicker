@@ -155,9 +155,9 @@
         return function(evt) {
             var mouse = mousePosition(evt);
             ctx.h = mouse.y / slideElement.offsetHeight * 360 + hueOffset;
-            ctx.s = ctx.v = 1;
-            var c = hsv2rgb({ h: ctx.h, s: 1, v: 1 });
-            pickerElement.style.backgroundColor = c.hex;
+            var pickerColor = hsv2rgb({ h: ctx.h, s: 1, v: 1 });
+            var c = hsv2rgb({ h: ctx.h, s: ctx.s, v: ctx.v });
+            pickerElement.style.backgroundColor = pickerColor.hex;
             ctx.callback && ctx.callback(c.hex, { h: ctx.h - hueOffset, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
         };
     }
@@ -359,9 +359,6 @@
      */
     ColorPicker.positionIndicators = function(slideIndicator, pickerIndicator, mouseSlide, mousePicker) {
         if (mouseSlide) {
-            pickerIndicator.style.left = 'auto';
-            pickerIndicator.style.right = '0';
-            pickerIndicator.style.top = '0';
             slideIndicator.style.top = (mouseSlide.y - slideIndicator.offsetHeight/2) + 'px';
         }
         if (mousePicker) {
