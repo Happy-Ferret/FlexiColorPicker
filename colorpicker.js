@@ -262,7 +262,7 @@
     function enableDragging(ctx, element, listener) {
         var mousedown = false;
 
-        element.addEventListener('mousedown', function() { mousedown = true; }, false);
+        element.addEventListener('mousedown', function(evt) { mousedown = true; evt.preventDefault() }, false);
         element.addEventListener('mouseup',   function() { mousedown = false; }, false);
         element.addEventListener('mouseout',  function() { mousedown = false; }, false);
         element.addEventListener('mousemove', function(evt) {
