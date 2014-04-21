@@ -39,26 +39,24 @@
       </div>
 
       <script type="text/javascript">
-
-        ColorPicker.fixIndicators(
-                document.getElementById('slider-indicator'),
-                document.getElementById('picker-indicator'));
-
-        ColorPicker(
-                document.getElementById('slider'), 
-                document.getElementById('picker'), 
-
+        var slider = document.getElementById('slider'),
+            picker = document.getElementById('picker'),
+            slider_indicator = document.getElementById('slider-indicator'),
+            picker_indicator = document.getElementById('picker-indicator'),
+            cp = ColorPicker(
+                slider,
+                picker,
                 function(hex, hsv, rgb, pickerCoordinate, sliderCoordinate) {
-
                     ColorPicker.positionIndicators(
-                        document.getElementById('slider-indicator'),
-                        document.getElementById('picker-indicator'),
-                        sliderCoordinate, pickerCoordinate
+                        slider_indicator,
+                        picker_indicator,
+                        sliderCoordinate,
+                        pickerCoordinate
                     );
-
                     document.body.style.backgroundColor = hex;
-            });
-
+                }
+            );
+        cp.fixIndicators(slider_indicator, picker_indicator);
       </script>
   </body>
 </html>

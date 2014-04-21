@@ -104,15 +104,10 @@ Example:
                     });
 
 
-**`ColorPicker.fixIndicators(sliderIndicator, pickerIndicator)`**
+**`ColorPicker.prototype.fixIndicators(sliderIndicator, pickerIndicator)`**
 
-This helper function just sets the `pointer-events` CSS property to `'none'` on both the `sliderIndicator` and
-`pickerIndicator`. This is necessary otherwise any mouse event (click, mousedown, mousemove) triggered
-on the `sliderIndicator` or `pickerIndicator` HTML elements would be cought instead of bypassed to
-the slider and the picker area, hence preventing the color picker to catch these UI events in order to change
-color. As `pointer-events` CSS property is not supported in all browsers, this function might workaround
-this issue in the future. At this time, setting `pointer-events: none` in CSS on the slider and picker indicators
-is equivalent.
+This helper function enables dragging on both the `sliderIndicator` and
+`pickerIndicator`.
 
 Again, if you use the no-hassle form (see above), you don't have to deal with this function at all.
 
@@ -206,26 +201,24 @@ This is an advanced example showing how to work with custom indicators.
               </div>
         
               <script type="text/javascript">
-        
-                ColorPicker.fixIndicators(
-                        document.getElementById('slider-indicator'),
-                        document.getElementById('picker-indicator'));
-        
-                ColorPicker(
-                        document.getElementById('slider'), 
-                        document.getElementById('picker'), 
-
+                var slider = document.getElementById('slider'),
+                    picker = document.getElementById('picker'),
+                    slider_indicator = document.getElementById('slider-indicator'),
+                    picker_indicator = document.getElementById('picker-indicator'),
+                    cp = ColorPicker(
+                        slider,
+                        picker,
                         function(hex, hsv, rgb, pickerCoordinate, sliderCoordinate) {
-        
                             ColorPicker.positionIndicators(
-                                document.getElementById('slider-indicator'),
-                                document.getElementById('picker-indicator'),
-                                sliderCoordinate, pickerCoordinate
+                                slider_indicator,
+                                picker_indicator,
+                                sliderCoordinate,
+                                pickerCoordinate
                             );
-        
                             document.body.style.backgroundColor = hex;
-                    });
-        
+                        }
+                    );
+                cp.fixIndicators(slider_indicator, picker_indicator);
               </script>
           </body>
         </html>
@@ -269,7 +262,7 @@ If you don't want to deal with any of the above mentioned details and you're jus
 
 
 The ColorPicker function has recognized only two arguments which means that it builds the HTML needed for you
-and also fixes and positions indicators automatically.
+and also positions indicators automatically.
 
 
 License

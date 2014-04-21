@@ -205,19 +205,17 @@
 
             this.slideElement = element.getElementsByClassName('slide')[0];
             this.pickerElement = element.getElementsByClassName('picker')[0];
-            var slideIndicator = element.getElementsByClassName('slide-indicator')[0];
-            var pickerIndicator = element.getElementsByClassName('picker-indicator')[0];
-
-            ColorPicker.fixIndicators(slideIndicator, pickerIndicator);
+            this.slideIndicator = element.getElementsByClassName('slide-indicator')[0];
+            this.pickerIndicator = element.getElementsByClassName('picker-indicator')[0];
 
             ColorPicker.positionIndicators(
-                slideIndicator,
-                pickerIndicator,
+                this.slideIndicator,
+                this.pickerIndicator,
                 {x: 0, y: 0},
                 {x: 0, y: 0}
             );
             this.callback = function(hex, hsv, rgb, pickerCoordinate, slideCoordinate) {
-                ColorPicker.positionIndicators(slideIndicator, pickerIndicator, slideCoordinate, pickerCoordinate);
+                ColorPicker.positionIndicators(this.slideIndicator, this.pickerIndicator, slideCoordinate, pickerCoordinate);
                 pickerElement(hex, hsv, rgb);
             };
 
@@ -225,6 +223,11 @@
             this.callback = callback;
             this.pickerElement = pickerElement;
             this.slideElement = slideElement;
+        }
+        this.slide_listener = slideListener(this, this.slideElement, this.pickerElement);
+        this.picker_listener = pickerListener(this, this.pickerElement);
+        if (!callback) {
+            this.fixIndicators(this.slideIndicator, this.pickerIndicator);
         }
 
         // Generate uniq IDs for linearGradients so that we don't have the same IDs within one document.
@@ -254,8 +257,8 @@
 
         uniqID++;
 
-        enableDragging(this.slideElement, slideListener(this, this.slideElement, this.pickerElement));
-        enableDragging(this.pickerElement, pickerListener(this, this.pickerElement));
+        enableDragging(this.slideElement, this.slide_listener);
+        enableDragging(this.pickerElement, this.picker_listener);
     }
 
    /**
@@ -379,11 +382,11 @@
     };
 
     /**
-     * Helper to fix indicators - this is recommended (and needed) for dragable color selection (see enabledDragging()).
+     * Helper to enable dragging on indicators.
      */
-    ColorPicker.fixIndicators = function(slideIndicator, pickerIndicator) {
-        pickerIndicator.style.pointerEvents = 'none';
-        slideIndicator.style.pointerEvents = 'none';
+    ColorPicker.prototype.fixIndicators = function(slideIndicator, pickerIndicator) {
+        enableDragging(slideIndicator, this.slide_listener);
+        enableDragging(pickerIndicator, this.picker_listener);
     };
 
     window.ColorPicker = ColorPicker;
