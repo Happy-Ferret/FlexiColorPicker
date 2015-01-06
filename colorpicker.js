@@ -272,7 +272,7 @@
             mousedown = true;
             evt.preventDefault();
             // listen to mouse move/up on document only after mouse down on element
-            document.addEventListener('mouseup', mouseUp, false);
+            document.addEventListener('mouseup', mouseUp, true);
             document.addEventListener('mousemove', mouseMove, false);
         }
         function mouseMove(evt) {if (mousedown) listener(evt);}
